@@ -28,8 +28,6 @@ class DashboardPanelProvider extends PanelProvider
             ->id('dashboard')
             ->path('dashboard')
 
-            // 👉 Layout navigasi di atas (horizontal/topbar)
-            ->topNavigation()
 
             // Warna utama tema
             ->colors([

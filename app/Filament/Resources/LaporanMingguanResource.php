@@ -29,7 +29,7 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Hidden;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log; // Added import for Log facade
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\HtmlString;
 use Illuminate\Validation\ValidationException;
 
@@ -367,7 +367,6 @@ class LaporanMingguanResource extends Resource
             });
         } else {
             Log::info('Applying admin filter for laporan');
-            // Hanya tampilkan laporan dengan pengajuan magang yang diterima
             $query->whereHas('pengajuanMagang', function ($q) {
                 $q->where('status', PengajuanMagang::STATUS_DITERIMA);
             });
@@ -787,9 +786,7 @@ class LaporanMingguanResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array
@@ -879,9 +876,39 @@ class LaporanMingguanResource extends Resource
             return false;
         }
 
-        return Mahasiswa::where('user_id', $user->id)->exists() ||
-               Pembimbing::where('user_id', $user->id)->exists() ||
-               !(Mahasiswa::where('user_id', $user->id)->exists() || Pembimbing::where('user_id', $user->id)->exists());
+        $mahasiswa = Mahasiswa::where('user_id', $user->id)->first();
+        $pembimbing = Pembimbing::where('user_id', $user->id)->first();
+
+        if ($mahasiswa) {
+            $hasApprovedPengajuan = PengajuanMagang::where('mahasiswa_id', $mahasiswa->id)
+                ->where('status', PengajuanMagang::STATUS_DITERIMA)
+                ->exists();
+            Log::info('Can view any check for mahasiswa', [
+                'user_id' => $user->id,
+                'mahasiswa_id' => $mahasiswa->id,
+                'has_approved_pengajuan' => $hasApprovedPengajuan,
+            ]);
+            return $hasApprovedPengajuan;
+        }
+
+        if ($pembimbing) {
+            $hasApprovedPengajuan = PengajuanMagang::where('pembimbing_id', $pembimbing->id)
+                ->where('status', PengajuanMagang::STATUS_DITERIMA)
+                ->exists();
+            Log::info('Can view any check for pembimbing', [
+                'user_id' => $user->id,
+                'pembimbing_id' => $pembimbing->id,
+                'has_approved_pengajuan' => $hasApprovedPengajuan,
+            ]);
+            return $hasApprovedPengajuan;
+        }
+
+        $hasApprovedPengajuan = PengajuanMagang::where('status', PengajuanMagang::STATUS_DITERIMA)->exists();
+        Log::info('Can view any check for admin', [
+            'user_id' => $user->id,
+            'has_approved_pengajuan' => $hasApprovedPengajuan,
+        ]);
+        return $hasApprovedPengajuan;
     }
 
     public static function canView($record): bool
