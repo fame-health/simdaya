@@ -10,8 +10,8 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\View\LegacyComponents\Widget;
 use Filament\Widgets;
+use App\Filament\Widgets\AdminPembimbingDashboardWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -27,14 +27,12 @@ class DashboardPanelProvider extends PanelProvider
             ->default()
             ->id('dashboard')
             ->path('dashboard')
-
-
-            // Warna utama tema
             ->colors([
                 'primary' => Color::Green,
             ])
-
-            // Otomatis mencari Resource, Page, Widget
+            ->brandName('SIMADAYA')
+            ->brandLogo(asset('images/logo-riau.png')) // Ganti dengan file logo yang diinginkan
+            ->brandLogoHeight('90px')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
@@ -44,9 +42,8 @@ class DashboardPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
                 \App\Filament\Widgets\ProgressSteps::class,
+                AdminPembimbingDashboardWidget::class,
             ])
-
-            // Middleware umum
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -58,8 +55,6 @@ class DashboardPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
-
-            // Middleware otentikasi Filament
             ->authMiddleware([
                 Authenticate::class,
             ]);

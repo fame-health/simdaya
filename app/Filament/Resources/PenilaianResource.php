@@ -23,7 +23,7 @@ class PenilaianResource extends Resource
 
     public static function form(Form $form): Form
     {
-        /** @var \App\Models\User $user */
+        /** @var \App\Models\User|null $user */
         $user = Auth::user();
 
         return $form
@@ -31,18 +31,19 @@ class PenilaianResource extends Resource
                 Forms\Components\Select::make('pengajuan_magang_id')
                     ->label('Pengajuan Magang')
                     ->options(function () use ($user) {
-                        if ($user->isPembimbing()) {
+                        if ($user && $user->isPembimbing()) {
                             return PengajuanMagang::where('pembimbing_id', $user->pembimbing->id)
                                 ->pluck('id', 'id');
                         }
                         return PengajuanMagang::pluck('id', 'id');
                     })
                     ->required()
-                    ->disabled(fn () => !$user->isAdmin()),
+                    ->disabled(fn () => !$user || !$user->isAdmin()),
+
                 Forms\Components\Select::make('mahasiswa_id')
                     ->label('Mahasiswa')
                     ->options(function () use ($user) {
-                        if ($user->isPembimbing()) {
+                        if ($user && $user->isPembimbing()) {
                             return PengajuanMagang::where('pembimbing_id', $user->pembimbing->id)
                                 ->with('mahasiswa')
                                 ->get()
@@ -51,39 +52,46 @@ class PenilaianResource extends Resource
                         return \App\Models\Mahasiswa::pluck('nim', 'id');
                     })
                     ->required()
-                    ->disabled(fn () => !$user->isAdmin()),
+                    ->disabled(fn () => !$user || !$user->isAdmin()),
+
                 Forms\Components\TextInput::make('aspek_penilaian')
                     ->label('Aspek Penilaian')
                     ->required()
                     ->maxLength(255),
+
                 Forms\Components\TextInput::make('nilai')
                     ->label('Nilai')
                     ->numeric()
                     ->required()
                     ->minValue(0)
                     ->maxValue(100),
+
                 Forms\Components\TextInput::make('bobot')
                     ->label('Bobot')
                     ->numeric()
                     ->required()
                     ->minValue(0)
                     ->maxValue(1)
-                    ->disabled(fn () => !$user->isAdmin()),
+                    ->disabled(fn () => !$user || !$user->isAdmin()),
+
                 Forms\Components\TextInput::make('nilai_akhir')
                     ->label('Nilai Akhir')
                     ->numeric()
                     ->disabled()
                     ->dehydrated(false)
                     ->helperText('Nilai akhir dihitung otomatis: nilai × bobot'),
+
                 Forms\Components\TextInput::make('grade')
                     ->label('Grade')
                     ->maxLength(2)
                     ->disabled()
                     ->dehydrated(false),
+
                 Forms\Components\Textarea::make('keterangan')
                     ->label('Keterangan')
                     ->maxLength(65535)
                     ->columnSpanFull(),
+
                 Forms\Components\DateTimePicker::make('tanggal_penilaian')
                     ->label('Tanggal Penilaian')
                     ->default(now())
@@ -93,7 +101,7 @@ class PenilaianResource extends Resource
 
     public static function table(Table $table): Table
     {
-        /** @var \App\Models\User $user */
+        /** @var \App\Models\User|null $user */
         $user = Auth::user();
 
         return $table
@@ -102,26 +110,33 @@ class PenilaianResource extends Resource
                     ->label('NIM Mahasiswa')
                     ->sortable()
                     ->searchable(),
+
                 Tables\Columns\TextColumn::make('mahasiswa.user.name')
                     ->label('Nama Mahasiswa')
                     ->sortable()
                     ->searchable(),
+
                 Tables\Columns\TextColumn::make('aspek_penilaian')
                     ->label('Aspek Penilaian')
                     ->searchable(),
+
                 Tables\Columns\TextColumn::make('nilai')
                     ->label('Nilai')
                     ->sortable(),
+
                 Tables\Columns\TextColumn::make('bobot')
                     ->label('Bobot')
                     ->sortable()
-                    ->visible(fn () => $user->isAdmin()),
+                    ->visible(fn () => $user && $user->isAdmin()),
+
                 Tables\Columns\TextColumn::make('nilai_akhir')
                     ->label('Nilai Akhir')
                     ->sortable(),
+
                 Tables\Columns\TextColumn::make('grade')
                     ->label('Grade')
                     ->sortable(),
+
                 Tables\Columns\TextColumn::make('tanggal_penilaian')
                     ->label('Tanggal Penilaian')
                     ->dateTime()
@@ -138,7 +153,7 @@ class PenilaianResource extends Resource
                 Tables\Actions\DeleteBulkAction::make(),
             ])
             ->modifyQueryUsing(function ($query) use ($user) {
-                if ($user->isPembimbing()) {
+                if ($user && $user->isPembimbing()) {
                     return $query->whereHas('pengajuanMagang', function ($q) use ($user) {
                         $q->where('pembimbing_id', $user->pembimbing->id);
                     });
@@ -165,8 +180,8 @@ class PenilaianResource extends Resource
 
     public static function canViewAny(): bool
     {
-        /** @var \App\Models\User $user */
+        /** @var \App\Models\User|null $user */
         $user = Auth::user();
-        return $user->isAdmin() || $user->isPembimbing();
+        return $user && ($user->isAdmin() || $user->isPembimbing());
     }
 }
