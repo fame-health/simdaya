@@ -5,41 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-/**
- * @property int $id
- * @property int $pengajuan_magang_id
- * @property int $mahasiswa_id
- * @property int $pembimbing_id
- * @property string $aspek_penilaian
- * @property numeric $nilai
- * @property numeric $bobot
- * @property string|null $keterangan
- * @property numeric $nilai_akhir
- * @property string $grade
- * @property \Illuminate\Support\Carbon $tanggal_penilaian
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\Mahasiswa $mahasiswa
- * @property-read \App\Models\Pembimbing $pembimbing
- * @property-read \App\Models\PengajuanMagang $pengajuanMagang
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Penilaian newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Penilaian newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Penilaian query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Penilaian whereAspekPenilaian($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Penilaian whereBobot($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Penilaian whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Penilaian whereGrade($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Penilaian whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Penilaian whereKeterangan($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Penilaian whereMahasiswaId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Penilaian whereNilai($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Penilaian whereNilaiAkhir($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Penilaian wherePembimbingId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Penilaian wherePengajuanMagangId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Penilaian whereTanggalPenilaian($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Penilaian whereUpdatedAt($value)
- * @mixin \Eloquent
- */
 class Penilaian extends Model
 {
     use HasFactory;
@@ -47,7 +12,6 @@ class Penilaian extends Model
     protected $table = 'penilaian';
 
     protected $fillable = [
-        'pengajuan_magang_id',
         'mahasiswa_id',
         'pembimbing_id',
         'aspek_penilaian',
@@ -66,6 +30,17 @@ class Penilaian extends Model
         'tanggal_penilaian' => 'datetime',
     ];
 
+    protected static function booted()
+    {
+        static::saving(function ($penilaian) {
+            // Calculate nilai_akhir (e.g., nilai * bobot)
+            $penilaian->nilai_akhir = $penilaian->nilai * $penilaian->bobot;
+
+            // Optionally calculate grade based on nilai_akhir
+            $penilaian->grade = $penilaian->calculateGrade($penilaian->nilai_akhir);
+        });
+    }
+
     public function pengajuanMagang()
     {
         return $this->belongsTo(PengajuanMagang::class);
@@ -79,5 +54,36 @@ class Penilaian extends Model
     public function pembimbing()
     {
         return $this->belongsTo(Pembimbing::class);
+    }
+
+    public static function getAllStudents()
+    {
+        return self::with('mahasiswa')
+            ->distinct('mahasiswa_id')
+            ->get()
+            ->pluck('mahasiswa')
+            ->filter()
+            ->values();
+    }
+
+    public function scopeWithStudents($query)
+    {
+        return $query->with('mahasiswa')->distinct('mahasiswa_id');
+    }
+
+    protected function calculateGrade($nilai_akhir): string
+    {
+        // Example grading logic (adjust as needed)
+        if ($nilai_akhir >= 85) {
+            return 'A';
+        } elseif ($nilai_akhir >= 70) {
+            return 'B';
+        } elseif ($nilai_akhir >= 55) {
+            return 'C';
+        } elseif ($nilai_akhir >= 40) {
+            return 'D';
+        } else {
+            return 'E';
+        }
     }
 }

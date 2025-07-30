@@ -18,6 +18,13 @@ class FinalLaporanResource extends Resource
 {
     protected static ?string $model = PengajuanMagang::class;
 
+        protected static ?string $navigationGroup = 'ALUR PELAKSANAAN PKL';
+
+    public static function getNavigationSort(): ?int
+{
+    return 5; // Ganti X dengan angka sesuai urutan yang kamu inginkan
+}
+
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
     protected static ?string $navigationLabel = 'Laporan Akhir';
     protected static ?string $pluralModelLabel = 'Laporan Akhir';
@@ -50,11 +57,19 @@ class FinalLaporanResource extends Resource
                 Forms\Components\Section::make('Informasi Pengajuan')
                     ->schema([
                         Forms\Components\Select::make('mahasiswa_id')
-                            ->relationship('mahasiswa', 'user.name', fn ($query) => $query->whereHas('user', fn ($q) => $q->where('role', 'mahasiswa')))
+                            ->relationship('mahasiswa', 'user_id')
+                            ->getOptionLabelFromRecordUsing(fn ($record) => $record->user->name ?? 'Tanpa Nama')
                             ->label('Mahasiswa')
                             ->disabled()
                             ->required()
-                            ->default(fn () => $isMahasiswa && $user->mahasiswa ? $user->mahasiswa->id : null),
+                            ->default(fn () => $isMahasiswa && $user->mahasiswa ? $user->mahasiswa->id : null)
+                            ->options(function () {
+                                return \App\Models\Mahasiswa::query()
+                                    ->join('users', 'mahasiswa.user_id', '=', 'users.id')
+                                    ->where('users.role', 'mahasiswa')
+                                    ->pluck('users.name', 'mahasiswa.id')
+                                    ->toArray();
+                            }),
                         Forms\Components\Select::make('pembimbing_id')
                             ->relationship('pembimbing', 'user_id')
                             ->getOptionLabelFromRecordUsing(fn ($record) => $record->user->name ?? 'Tanpa Nama')

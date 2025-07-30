@@ -16,9 +16,19 @@ use Illuminate\Support\Facades\Auth;
 class MahasiswaResource extends Resource
 {
     protected static ?string $model = Mahasiswa::class;
+    protected static ?string $navigationGroup = 'ALUR PELAKSANAAN PKL';
+
+    public static function getNavigationSort(): ?int
+{
+    return 1; // Ganti X dengan angka sesuai urutan yang kamu inginkan
+}
+
+
 
     protected static ?string $navigationIcon = 'heroicon-o-academic-cap';
     protected static ?string $navigationLabel = 'Mahasiswa';
+
+
     protected static ?string $modelLabel = 'Mahasiswa';
     protected static ?string $pluralModelLabel = 'Mahasiswa';
     protected static ?int $navigationSort = 2;

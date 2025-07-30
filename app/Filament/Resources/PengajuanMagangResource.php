@@ -20,6 +20,16 @@ class PengajuanMagangResource extends Resource
 {
     protected static ?string $model = PengajuanMagang::class;
 
+    protected static ?string $navigationGroup = 'ALUR PELAKSANAAN PKL';
+
+    public static function getNavigationSort(): ?int
+{
+    return 2; // Ganti X dengan angka sesuai urutan yang kamu inginkan
+}
+
+
+
+
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
     protected static ?string $navigationLabel = 'Pengajuan Magang';

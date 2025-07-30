@@ -13,11 +13,6 @@ return new class extends Migration
 
             $table->id();
 
-            // Perbaikan: Tentukan nama tabel referensi secara eksplisit
-            $table->foreignId('pengajuan_magang_id')
-                  ->constrained('pengajuan_magang') // Pastikan nama tabel benar
-                  ->onDelete('cascade');
-
             $table->foreignId('mahasiswa_id')
                   ->constrained('mahasiswa')
                   ->onDelete('cascade');
@@ -35,8 +30,7 @@ return new class extends Migration
             $table->timestamp('tanggal_penilaian');
             $table->timestamps();
 
-            // Tambahkan index untuk performa
-            $table->index('pengajuan_magang_id');
+            // Index hanya untuk kolom yang memang ada
             $table->index('mahasiswa_id');
             $table->index('pembimbing_id');
         });
