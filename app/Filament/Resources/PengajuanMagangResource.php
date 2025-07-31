@@ -34,7 +34,7 @@ class PengajuanMagangResource extends Resource
 
     protected static ?string $navigationLabel = 'Pengajuan Magang';
 
-    protected static ?string $pluralModelLabel = 'Pengajuan Magang';
+    protected static ?string $pluralModelLabel = 'Silakan klik Pengajuan Manggang';
 
     public static function canAccess(): bool
     {

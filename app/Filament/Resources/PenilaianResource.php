@@ -22,12 +22,6 @@ class PenilaianResource extends Resource
 
     protected static ?string $navigationGroup = 'ALUR PELAKSANAAN PKL';
 
-    public static function getNavigationSort(): ?int
-{
-    return 4; // Ganti X dengan angka sesuai urutan yang kamu inginkan
-}
-
-
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
 
     protected static ?string $navigationLabel = 'Penilaian';
@@ -36,11 +30,16 @@ class PenilaianResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Penilaian';
 
+    public static function getNavigationSort(): ?int
+    {
+        return 4;
+    }
+
     public static function form(Form $form): Form
     {
         $user = Auth::user();
-        $isMahasiswa = $user->role === 'mahasiswa';
-        $isPembimbing = $user->role === 'pembimbing';
+        $isMahasiswa = $user && $user->role === 'mahasiswa';
+        $isPembimbing = $user && $user->role === 'pembimbing';
 
         return $form
             ->schema([
@@ -104,9 +103,9 @@ class PenilaianResource extends Resource
     public static function table(Table $table): Table
     {
         $user = Auth::user();
-        $isMahasiswa = $user->role === 'mahasiswa';
-        $isPembimbing = $user->role === 'pembimbing';
-        $isAdmin = !$isMahasiswa && !$isPembimbing;
+        $isMahasiswa = $user && $user->role === 'mahasiswa';
+        $isPembimbing = $user && $user->role === 'pembimbing';
+        $isAdmin = $user && !$isMahasiswa && !$isPembimbing;
 
         $pembimbing = $isPembimbing ? Pembimbing::where('user_id', $user->id)->first() : null;
         $mahasiswa = $isMahasiswa ? Mahasiswa::where('user_id', $user->id)->first() : null;
@@ -362,7 +361,6 @@ class PenilaianResource extends Resource
                             $query->whereNull('nilai');
                         }
                     })
-
                     ->visible($isPembimbing || $isAdmin),
             ])
             ->actions([
@@ -393,73 +391,108 @@ class PenilaianResource extends Resource
         return [];
     }
 
- public static function getPages(): array
-{
-    $user = Auth::user();
-    $pages = [
-        'index' => Pages\ListPenilaians::route('/'),
-    ];
+    public static function getPages(): array
+    {
+        $user = Auth::user();
+        $pages = [
+            'index' => Pages\ListPenilaians::route('/'),
+        ];
 
-    // Only check roles if a user is authenticated
-    if ($user) {
-        $isMahasiswa = $user->role === 'mahasiswa';
-        $isPembimbing = $user->role === 'pembimbing';
+        // Only check roles if a user is authenticated
+        if ($user) {
+            $isMahasiswa = $user->role === 'mahasiswa';
+            $isPembimbing = $user->role === 'pembimbing';
 
-        if ($isPembimbing) {
-            // Add any pembimbing-specific pages here if needed
+            if ($isPembimbing) {
+                // Add any pembimbing-specific pages here if needed
+            }
+
+            if ($isMahasiswa) {
+                // Add any mahasiswa-specific pages here if needed
+            }
         }
 
-        if ($isMahasiswa) {
-            // Add any mahasiswa-specific pages here if needed
-        }
+        return $pages;
     }
-
-    return $pages;
-}
 
     public static function canCreate(): bool
     {
-        return Auth::user()->role === 'pembimbing';
+        $user = Auth::user();
+        return $user && $user->role === 'pembimbing';
     }
 
     public static function canEdit($record): bool
     {
         $user = Auth::user();
+        if (!$user || $user->role !== 'pembimbing') {
+            return false;
+        }
         $pembimbing = Pembimbing::where('user_id', $user->id)->first();
-        return $user->role === 'pembimbing' && $pembimbing && $record->pembimbing_id === $pembimbing->id;
+        return $pembimbing && $record->pembimbing_id === $pembimbing->id;
     }
 
     public static function canView($record): bool
     {
         $user = Auth::user();
+        if (!$user || $user->role !== 'mahasiswa') {
+            return false;
+        }
         $mahasiswa = Mahasiswa::where('user_id', $user->id)->first();
-        return $user->role === 'mahasiswa' && $mahasiswa && $record->mahasiswa_id === $mahasiswa->id;
+        return $mahasiswa && $record->mahasiswa_id === $mahasiswa->id;
     }
 
     public static function canDelete($record): bool
     {
         $user = Auth::user();
-        $pembimbing = Pembimbing::where('user_id', $user->id)->first();
-        $isAdmin = !$user->role === 'mahasiswa' && !$user->role === 'pembimbing';
-        return ($user->role === 'pembimbing' && $pembimbing && $record->pembimbing_id === $pembimbing->id) || $isAdmin;
+        if (!$user) {
+            return false;
+        }
+        $isAdmin = $user->role !== 'mahasiswa' && $user->role !== 'pembimbing';
+        if ($isAdmin) {
+            return true;
+        }
+        if ($user->role === 'pembimbing') {
+            $pembimbing = Pembimbing::where('user_id', $user->id)->first();
+            return $pembimbing && $record->pembimbing_id === $pembimbing->id;
+        }
+        return false;
     }
 
-    public static function canViewAny(): bool
-    {
-        $user = Auth::user();
-        return $user->role === 'mahasiswa' || $user->role === 'pembimbing' || (!$user->role === 'mahasiswa' && !$user->role === 'pembimbing');
+public static function canViewAny(): bool
+{
+    $user = Auth::user();
+    if (!$user) {
+        return false;
     }
+
+    if ($user->role === 'mahasiswa') {
+        $mahasiswa = Mahasiswa::where('user_id', $user->id)->first();
+        return $mahasiswa !== null; // Hanya izinkan jika data mahasiswa ada
+    }
+
+    return $user->role === 'pembimbing' || ($user->role !== 'mahasiswa' && $user->role !== 'pembimbing');
+}
 
     public static function getNavigationBadge(): ?string
     {
         $user = Auth::user();
+        if (!$user) {
+            return null;
+        }
+
         if ($user->role === 'pembimbing') {
             $pembimbing = Pembimbing::where('user_id', $user->id)->first();
-            return (string) Penilaian::where('pembimbing_id', $pembimbing->id)->count();
+            if ($pembimbing) {
+                return (string) Penilaian::where('pembimbing_id', $pembimbing->id)->count();
+            }
+            return '0';
         }
         if ($user->role === 'mahasiswa') {
             $mahasiswa = Mahasiswa::where('user_id', $user->id)->first();
-            return (string) Penilaian::where('mahasiswa_id', $mahasiswa->id)->count();
+            if ($mahasiswa) {
+                return (string) Penilaian::where('mahasiswa_id', $mahasiswa->id)->count();
+            }
+            return '0';
         }
         return (string) Penilaian::count();
     }
@@ -467,15 +500,25 @@ class PenilaianResource extends Resource
     public static function getNavigationBadgeColor(): ?string
     {
         $user = Auth::user();
+        if (!$user) {
+            return 'primary';
+        }
+
         if ($user->role === 'mahasiswa') {
             $mahasiswa = Mahasiswa::where('user_id', $user->id)->first();
-            $count = Penilaian::where('mahasiswa_id', $mahasiswa->id)->count();
-            return $count > 0 ? 'success' : 'warning';
+            if ($mahasiswa) {
+                $count = Penilaian::where('mahasiswa_id', $mahasiswa->id)->count();
+                return $count > 0 ? 'success' : 'warning';
+            }
+            return 'warning';
         }
         if ($user->role === 'pembimbing') {
             $pembimbing = Pembimbing::where('user_id', $user->id)->first();
-            $count = Penilaian::where('pembimbing_id', $pembimbing->id)->whereNull('nilai')->count();
-            return $count > 0 ? 'warning' : 'success';
+            if ($pembimbing) {
+                $count = Penilaian::where('pembimbing_id', $pembimbing->id)->whereNull('nilai')->count();
+                return $count > 0 ? 'warning' : 'success';
+            }
+            return 'warning';
         }
         return 'primary';
     }

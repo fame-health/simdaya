@@ -18,28 +18,42 @@ class FinalLaporanResource extends Resource
 {
     protected static ?string $model = PengajuanMagang::class;
 
-        protected static ?string $navigationGroup = 'ALUR PELAKSANAAN PKL';
+    protected static ?string $navigationGroup = 'ALUR PELAKSANAAN PKL';
 
     public static function getNavigationSort(): ?int
-{
-    return 5; // Ganti X dengan angka sesuai urutan yang kamu inginkan
-}
+    {
+        return 5;
+    }
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
     protected static ?string $navigationLabel = 'Laporan Akhir';
     protected static ?string $pluralModelLabel = 'Laporan Akhir';
 
-    public static function canAccess(): bool
+    public static function canViewAny(): bool
     {
         $user = Auth::user();
-        return $user && in_array($user->role, ['admin', 'mahasiswa']);
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->role === 'mahasiswa' && $user->mahasiswa) {
+            // Cek apakah ada pengajuan magang dengan status diterima atau selesai
+            $hasValidPengajuan = PengajuanMagang::where('mahasiswa_id', $user->mahasiswa->id)
+                ->whereIn('status', [PengajuanMagang::STATUS_DITERIMA, PengajuanMagang::STATUS_SELESAI])
+                ->exists();
+            return $hasValidPengajuan;
+        }
+
+        // Admin dapat melihat resource tanpa batasan status
+        return $user->role === 'admin';
     }
 
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
         $query = parent::getEloquentQuery()->with(['mahasiswa.user', 'pembimbing.user']);
         if (Auth::user()->role === 'mahasiswa' && Auth::user()->mahasiswa) {
-            $query->where('mahasiswa_id', Auth::user()->mahasiswa->id);
+            $query->where('mahasiswa_id', Auth::user()->mahasiswa->id)
+                  ->whereIn('status', [PengajuanMagang::STATUS_DITERIMA, PengajuanMagang::STATUS_SELESAI]);
         } elseif (Auth::user()->role === 'admin') {
             $query->whereIn('status', [PengajuanMagang::STATUS_DITERIMA, PengajuanMagang::STATUS_SELESAI]);
         }
@@ -134,6 +148,7 @@ class FinalLaporanResource extends Resource
                 }
 
                 $pengajuan = PengajuanMagang::where('mahasiswa_id', $user->mahasiswa->id)
+                    ->whereIn('status', [PengajuanMagang::STATUS_DITERIMA, PengajuanMagang::STATUS_SELESAI])
                     ->orderBy('created_at', 'desc')
                     ->first();
 
@@ -394,17 +409,32 @@ class FinalLaporanResource extends Resource
             return true;
         }
         if ($user->role === 'mahasiswa' && $user->mahasiswa) {
-            return $record->mahasiswa_id === $user->mahasiswa->id;
+            return $record->mahasiswa_id === $user->mahasiswa->id && in_array($record->status, [PengajuanMagang::STATUS_DITERIMA, PengajuanMagang::STATUS_SELESAI]);
         }
         return false;
     }
 
     public static function getPages(): array
     {
-        return [
+        $user = Auth::user();
+        $pages = [
             'index' => Pages\ListFinalLaporans::route('/'),
             'edit' => Pages\EditFinalLaporan::route('/{record}/edit'),
-            // 'view' => Pages\ViewFinalLaporan::route('/{record}'), // Commented out due to undefined ViewFinalLaporan
         ];
+
+        if ($user && $user->role === 'mahasiswa' && $user->mahasiswa) {
+            $hasPendingOrRejected = PengajuanMagang::where('mahasiswa_id', $user->mahasiswa->id)
+                ->whereIn('status', [PengajuanMagang::STATUS_PENDING, PengajuanMagang::STATUS_DITOLAK])
+                ->exists();
+            if ($hasPendingOrRejected) {
+                \Filament\Notifications\Notification::make()
+                    ->title('Pengajuan Magang Belum Diterima')
+                    ->body('Resource Laporan Akhir hanya tersedia setelah pengajuan magang Anda diterima.')
+                    ->warning()
+                    ->send();
+            }
+        }
+
+        return $pages;
     }
 }
