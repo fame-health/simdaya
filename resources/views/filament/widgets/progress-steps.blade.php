@@ -88,6 +88,11 @@
             <div class="mt-1 text-xs text-gray-500 text-right">
                 {{ $completedCount }} dari {{ $totalSteps }} langkah selesai
             </div>
+
+            <!-- Add Print Button -->
+            <div class="mt-4 flex justify-end">
+                <livewire:mahasiswa-print :steps="$this->getStepsData()" />
+            </div>
         </div>
     </x-filament::section>
 </x-filament-widgets::widget>

@@ -56,7 +56,7 @@ class MahasiswaResource extends Resource
                 Forms\Components\Section::make('Data Akademik')
                     ->schema([
                         Forms\Components\TextInput::make('nim')
-                            ->label('NIM')
+                            ->label('NIM / NIP Siswa')
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(20)
@@ -64,16 +64,16 @@ class MahasiswaResource extends Resource
                             ->rule('regex:/^[0-9]+$/'),
 
                         Forms\Components\TextInput::make('universitas')
-                            ->label('Universitas')
+                            ->label('Universitas / Sekolah')
                             ->required()
                             ->maxLength(255)
                             ->placeholder('Nama universitas'),
 
                         Forms\Components\TextInput::make('fakultas')
-                            ->label('Fakultas')
+                            ->label('Fakultas /')
                             ->required()
                             ->maxLength(255)
-                            ->placeholder('Nama fakultas'),
+                            ->placeholder('Nama fakultas / Siswa di kasih tanda -'),
 
                         Forms\Components\TextInput::make('jurusan')
                             ->label('Jurusan/Program Studi')
@@ -84,7 +84,7 @@ class MahasiswaResource extends Resource
                         Forms\Components\Grid::make(2)
                             ->schema([
                                 Forms\Components\TextInput::make('semester')
-                                    ->label('Semester')
+                                    ->label('Semester / Kelas')
                                     ->numeric()
                                     ->required()
                                     ->minValue(1)
@@ -92,7 +92,7 @@ class MahasiswaResource extends Resource
                                     ->placeholder('1-14'),
 
                                 Forms\Components\TextInput::make('ipk')
-                                    ->label('IPK')
+                                    ->label('IPK / Nilai')
                                     ->numeric()
                                     ->required()
                                     ->step(0.01)
