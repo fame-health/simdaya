@@ -351,7 +351,7 @@
         <td style="padding-top: 80px; text-align: right; vertical-align: top;">
             <p style="margin: 0;">(__________________________)</p>
             <p style="margin: 0;"></p>
-            <p style="margin: 0;">NIP:</p>
+            <p style="margin: 0;"></p>
         </td>
     </tr>
 </table>
