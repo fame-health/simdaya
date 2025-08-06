@@ -39,11 +39,10 @@ class LaporanMingguanResource extends Resource
 
     protected static ?string $navigationGroup = 'ALUR PELAKSANAAN PKL';
 
-
     public static function getNavigationSort(): ?int
-{
-    return 3; // Ganti X dengan angka sesuai urutan yang kamu inginkan
-}
+    {
+        return 3;
+    }
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
@@ -52,6 +51,100 @@ class LaporanMingguanResource extends Resource
     protected static ?string $modelLabel = 'Laporan Mingguan';
 
     protected static ?string $pluralModelLabel = 'Laporan Mingguan';
+
+public static function shouldRegisterNavigation(): bool
+{
+    $user = Auth::user();
+    if (!$user) {
+        Log::warning('No authenticated user for shouldRegisterNavigation check');
+        return false;
+    }
+
+    if ($user->role === 'pembimbing') {
+        // Pembimbing can see the resource if they have approved PengajuanMagang
+        $pembimbing = Pembimbing::where('user_id', $user->id)->first();
+        if ($pembimbing) {
+            $hasApprovedPengajuan = PengajuanMagang::where('pembimbing_id', $pembimbing->id)
+                ->where('status', PengajuanMagang::STATUS_DITERIMA)
+                ->exists();
+            Log::info('shouldRegisterNavigation check for pembimbing', [
+                'user_id' => $user->id,
+                'pembimbing_id' => $pembimbing->id,
+                'has_approved_pengajuan' => $hasApprovedPengajuan,
+            ]);
+            return $hasApprovedPengajuan;
+        }
+        return false;
+    }
+
+    if ($user->role === 'mahasiswa') {
+        $mahasiswa = Mahasiswa::where('user_id', $user->id)->first();
+        if (!$mahasiswa) {
+            Log::info('Hiding LaporanMingguanResource: No Mahasiswa record', [
+                'user_id' => $user->id,
+            ]);
+            return false;
+        }
+
+        // Check all required Mahasiswa fields
+        $requiredFields = [
+            'nim' => $mahasiswa->nim,
+            'universitas' => $mahasiswa->universitas,
+            'fakultas' => $mahasiswa->fakultas,
+            'jurusan' => $mahasiswa->jurusan,
+            'semester' => $mahasiswa->semester,
+            'ipk' => $mahasiswa->ipk,
+            'alamat' => $mahasiswa->alamat,
+            'tanggal_lahir' => $mahasiswa->tanggal_lahir,
+            'jenis_kelamin' => $mahasiswa->jenis_kelamin,
+            'user_name' => $mahasiswa->user ? $mahasiswa->user->name : null,
+        ];
+
+        $isMahasiswaDataFilled = true;
+        foreach ($requiredFields as $field => $value) {
+            if (is_null($value) || $value === '') {
+                $isMahasiswaDataFilled = false;
+                break;
+            }
+        }
+
+        Log::info('shouldRegisterNavigation check for mahasiswa', [
+            'user_id' => $user->id,
+            'mahasiswa_id' => $mahasiswa->id,
+            'required_fields' => $requiredFields,
+            'is_mahasiswa_data_filled' => $isMahasiswaDataFilled,
+        ]);
+
+        if (!$isMahasiswaDataFilled) {
+            Log::info('Hiding LaporanMingguanResource: Mahasiswa data incomplete', [
+                'user_id' => $user->id,
+                'mahasiswa_id' => $mahasiswa->id,
+            ]);
+            return false;
+        }
+
+        // Check for approved PengajuanMagang
+        $hasApprovedPengajuan = PengajuanMagang::where('mahasiswa_id', $mahasiswa->id)
+            ->where('status', PengajuanMagang::STATUS_DITERIMA)
+            ->exists();
+
+        Log::info('Mahasiswa pengajuan check in shouldRegisterNavigation', [
+            'user_id' => $user->id,
+            'mahasiswa_id' => $mahasiswa->id,
+            'has_approved_pengajuan' => $hasApprovedPengajuan,
+        ]);
+
+        return $hasApprovedPengajuan;
+    }
+
+    // Admin can see the resource if there are approved PengajuanMagang
+    $hasApprovedPengajuan = PengajuanMagang::where('status', PengajuanMagang::STATUS_DITERIMA)->exists();
+    Log::info('shouldRegisterNavigation check for admin', [
+        'user_id' => $user->id,
+        'has_approved_pengajuan' => $hasApprovedPengajuan,
+    ]);
+    return $hasApprovedPengajuan;
+}
 
     public static function form(Form $form): Form
     {
@@ -655,6 +748,7 @@ class LaporanMingguanResource extends Resource
                     }),
             ])
             ->actions([
+                // Aksi View untuk Mahasiswa
                 Tables\Actions\ViewAction::make()
                     ->color('info')
                     ->visible(fn ($record) =>
@@ -663,6 +757,7 @@ class LaporanMingguanResource extends Resource
                         $record->mahasiswa_id === Mahasiswa::where('user_id', Auth::id())->first()->id
                     ),
 
+                // Aksi Edit untuk Mahasiswa
                 Tables\Actions\EditAction::make()
                     ->visible(fn ($record) =>
                         Auth::user() &&
@@ -671,6 +766,19 @@ class LaporanMingguanResource extends Resource
                         !$record->status_approve
                     ),
 
+                // Aksi View untuk Pembimbing (Baru Ditambahkan)
+                Tables\Actions\ViewAction::make()
+                    ->label('Lihat')
+                    ->color('info')
+                    ->icon('heroicon-o-eye')
+                    ->visible(fn ($record) =>
+                        Auth::user() &&
+                        Pembimbing::where('user_id', Auth::id())->exists() &&
+                        $record->pengajuanMagang &&
+                        $record->pengajuanMagang->pembimbing_id === Pembimbing::where('user_id', Auth::id())->first()->id
+                    ),
+
+                // Aksi Approve untuk Pembimbing
                 Action::make('approve')
                     ->label('Setujui')
                     ->icon('heroicon-o-check-circle')
@@ -719,6 +827,7 @@ class LaporanMingguanResource extends Resource
                             ->send();
                     }),
 
+                // Aksi Reject untuk Pembimbing
                 Action::make('reject')
                     ->label('Tolak')
                     ->icon('heroicon-o-x-circle')
@@ -767,6 +876,7 @@ class LaporanMingguanResource extends Resource
                             ->send();
                     }),
 
+                // Aksi Delete untuk Mahasiswa
                 Tables\Actions\DeleteAction::make()
                     ->visible(fn ($record) =>
                         Auth::user() &&
@@ -876,29 +986,77 @@ class LaporanMingguanResource extends Resource
         return true;
     }
 
-    public static function canViewAny(): bool
-    {
-        $user = Auth::user();
-        if (!$user) {
-            Log::warning('No authenticated user for canViewAny check');
+
+public static function canViewAny(): bool
+{
+    $user = Auth::user();
+    if (!$user) {
+        Log::warning('No authenticated user for canViewAny check');
+        return false;
+    }
+
+    if ($user->role === 'mahasiswa') {
+        $mahasiswa = Mahasiswa::where('user_id', $user->id)->first();
+        if (!$mahasiswa) {
+            Log::info('Hiding LaporanMingguanResource: No Mahasiswa record', [
+                'user_id' => $user->id,
+            ]);
             return false;
         }
 
-        $mahasiswa = Mahasiswa::where('user_id', $user->id)->first();
-        $pembimbing = Pembimbing::where('user_id', $user->id)->first();
+        // Check all required Mahasiswa fields
+        $requiredFields = [
+            'nim' => $mahasiswa->nim,
+            'universitas' => $mahasiswa->universitas,
+            'fakultas' => $mahasiswa->fakultas,
+            'jurusan' => $mahasiswa->jurusan,
+            'semester' => $mahasiswa->semester,
+            'ipk' => $mahasiswa->ipk,
+            'alamat' => $mahasiswa->alamat,
+            'tanggal_lahir' => $mahasiswa->tanggal_lahir,
+            'jenis_kelamin' => $mahasiswa->jenis_kelamin,
+            'user_name' => $mahasiswa->user ? $mahasiswa->user->name : null,
+        ];
 
-        if ($mahasiswa) {
-            $hasApprovedPengajuan = PengajuanMagang::where('mahasiswa_id', $mahasiswa->id)
-                ->where('status', PengajuanMagang::STATUS_DITERIMA)
-                ->exists();
-            Log::info('Can view any check for mahasiswa', [
-                'user_id' => $user->id,
-                'mahasiswa_id' => $mahasiswa->id,
-                'has_approved_pengajuan' => $hasApprovedPengajuan,
-            ]);
-            return $hasApprovedPengajuan;
+        $isMahasiswaDataFilled = true;
+        foreach ($requiredFields as $field => $value) {
+            if (is_null($value) || $value === '') {
+                $isMahasiswaDataFilled = false;
+                break;
+            }
         }
 
+        Log::info('Can view any check for mahasiswa', [
+            'user_id' => $user->id,
+            'mahasiswa_id' => $mahasiswa->id,
+            'required_fields' => $requiredFields,
+            'is_mahasiswa_data_filled' => $isMahasiswaDataFilled,
+        ]);
+
+        if (!$isMahasiswaDataFilled) {
+            Log::info('Hiding LaporanMingguanResource: Mahasiswa data incomplete', [
+                'user_id' => $user->id,
+                'mahasiswa_id' => $mahasiswa->id,
+            ]);
+            return false;
+        }
+
+        // Check for approved PengajuanMagang
+        $hasApprovedPengajuan = PengajuanMagang::where('mahasiswa_id', $mahasiswa->id)
+            ->where('status', PengajuanMagang::STATUS_DITERIMA)
+            ->exists();
+
+        Log::info('Mahasiswa pengajuan check', [
+            'user_id' => $user->id,
+            'mahasiswa_id' => $mahasiswa->id,
+            'has_approved_pengajuan' => $hasApprovedPengajuan,
+        ]);
+
+        return $hasApprovedPengajuan;
+    }
+
+    if ($user->role === 'pembimbing') {
+        $pembimbing = Pembimbing::where('user_id', $user->id)->first();
         if ($pembimbing) {
             $hasApprovedPengajuan = PengajuanMagang::where('pembimbing_id', $pembimbing->id)
                 ->where('status', PengajuanMagang::STATUS_DITERIMA)
@@ -910,14 +1068,18 @@ class LaporanMingguanResource extends Resource
             ]);
             return $hasApprovedPengajuan;
         }
-
-        $hasApprovedPengajuan = PengajuanMagang::where('status', PengajuanMagang::STATUS_DITERIMA)->exists();
-        Log::info('Can view any check for admin', [
-            'user_id' => $user->id,
-            'has_approved_pengajuan' => $hasApprovedPengajuan,
-        ]);
-        return $hasApprovedPengajuan;
+        return false;
     }
+
+    // Admin can view if there are approved PengajuanMagang
+    $hasApprovedPengajuan = PengajuanMagang::where('status', PengajuanMagang::STATUS_DITERIMA)->exists();
+    Log::info('Can view any check for admin', [
+        'user_id' => $user->id,
+        'has_approved_pengajuan' => $hasApprovedPengajuan,
+    ]);
+    return $hasApprovedPengajuan;
+}
+
 
     public static function canView($record): bool
     {

@@ -16,24 +16,24 @@ class MahasiswaPrint extends Component
     public $steps = [];
     public $pengajuanMagang;
     public $penilaian;
+    public $mahasiswa;
 
     public function mount()
     {
         $user = Auth::user();
-        $mahasiswa = Mahasiswa::where('user_id', $user->id)->first();
+        $this->mahasiswa = Mahasiswa::where('user_id', $user->id)->first();
 
-        if (!$mahasiswa) {
-            abort(403, 'Data mahasiswa tidak ditemukan.');
+        // Jika belum ada data mahasiswa, jangan lanjutkan proses lainnya
+        if (!$this->mahasiswa) {
+            return;
         }
 
-        // Fetch the latest internship application (pengajuan_magang) for the student
-        $this->pengajuanMagang = PengajuanMagang::where('mahasiswa_id', $mahasiswa->id)
+        $this->pengajuanMagang = PengajuanMagang::where('mahasiswa_id', $this->mahasiswa->id)
             ->whereIn('status', [PengajuanMagang::STATUS_DITERIMA, PengajuanMagang::STATUS_SELESAI])
             ->latest()
             ->first();
 
-        // Fetch weekly reports (laporan_mingguan) and transform them into steps
-        $laporanMingguan = LaporanMingguan::where('mahasiswa_id', $mahasiswa->id)
+        $laporanMingguan = LaporanMingguan::where('mahasiswa_id', $this->mahasiswa->id)
             ->where('pengajuan_magang_id', optional($this->pengajuanMagang)->id)
             ->orderBy('minggu_ke')
             ->get();
@@ -52,8 +52,7 @@ class MahasiswaPrint extends Component
             ];
         })->toArray();
 
-        // Fetch evaluation data (penilaian) for the student
-        $this->penilaian = Penilaian::where('mahasiswa_id', $mahasiswa->id)
+        $this->penilaian = Penilaian::where('mahasiswa_id', $this->mahasiswa->id)
             ->when($this->pengajuanMagang && $this->pengajuanMagang->pembimbing_id, function ($query) {
                 return $query->where('pembimbing_id', $this->pengajuanMagang->pembimbing_id);
             })
@@ -66,15 +65,13 @@ class MahasiswaPrint extends Component
         $mahasiswa = Mahasiswa::with('user')->where('user_id', $user->id)->first();
 
         if (!$mahasiswa) {
-            abort(403, 'Data mahasiswa tidak ditemukan.');
+            return back()->with('error', 'Data mahasiswa belum tersedia.');
         }
 
-        // Fetch catatan pembimbing
         $catatanPembimbing = CatatanPembimbing::where('mahasiswa_id', $mahasiswa->id)
             ->where('pengajuan_magang_id', optional($this->pengajuanMagang)->id)
             ->get();
 
-        // Prepare data for the PDF view
         $data = [
             'mahasiswa' => $mahasiswa,
             'steps' => $this->steps,
@@ -85,16 +82,17 @@ class MahasiswaPrint extends Component
             'catatanPembimbing' => $catatanPembimbing,
         ];
 
-        // Generate PDF with name from User model
         $pdf = Pdf::loadView('livewire.pdf.mahasiswa-progress', $data);
         return response()->streamDownload(
-            fn() => print($pdf->output()),
+            fn () => print($pdf->output()),
             'progress-magang-' . ($mahasiswa->user->name ?? 'mahasiswa') . '.pdf'
         );
     }
 
     public function render()
     {
-        return view('livewire.mahasiswa-print');
+        return view('livewire.mahasiswa-print', [
+            'mahasiswa' => $this->mahasiswa,
+        ]);
     }
 }

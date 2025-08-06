@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Models\Mahasiswa;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -19,14 +20,33 @@ class MahasiswaResource extends Resource
     protected static ?string $navigationGroup = 'ALUR PELAKSANAAN PKL';
 
     public static function getNavigationSort(): ?int
-{
-    return 1; // Ganti X dengan angka sesuai urutan yang kamu inginkan
-}
+    {
+        return 1; // Ganti X dengan angka sesuai urutan yang kamu inginkan
+    }
 
 
 
     protected static ?string $navigationIcon = 'heroicon-o-academic-cap';
-    protected static ?string $navigationLabel = 'Mahasiswa';
+    public static function getNavigationLabel(): string
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        if ($user?->isAdmin()) {
+            return 'Biodata Mahasiswa';
+        }
+
+        if ($user?->isMahasiswa()) {
+            return 'Biodata Mahasiswa';
+        }
+
+        if ($user?->isPembimbing()) {
+            return 'Biodata Pembimbing';
+        }
+
+        return 'Isi Biodata';
+    }
+
 
 
     protected static ?string $modelLabel = 'Mahasiswa';
@@ -192,7 +212,7 @@ class MahasiswaResource extends Resource
                     ->alignCenter()
                     ->badge()
                     ->size('sm')
-                    ->color(fn ($state) => match(true) {
+                    ->color(fn($state) => match (true) {
                         $state >= 3.50 => 'success',
                         $state >= 3.00 => 'warning',
                         default => 'danger'
@@ -220,9 +240,9 @@ class MahasiswaResource extends Resource
 
                 Tables\Columns\TextColumn::make('jenis_kelamin')
                     ->label('L/P')
-                    ->formatStateUsing(fn ($state) => $state === 'L' ? 'L' : 'P')
+                    ->formatStateUsing(fn($state) => $state === 'L' ? 'L' : 'P')
                     ->badge()
-                    ->color(fn ($state) => $state === 'L' ? 'blue' : 'pink')
+                    ->color(fn($state) => $state === 'L' ? 'blue' : 'pink')
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->size('sm'),
 
@@ -247,7 +267,7 @@ class MahasiswaResource extends Resource
 
                 Filter::make('ipk_tinggi')
                     ->label('IPK ≥ 3.50')
-                    ->query(fn (Builder $query): Builder => $query->where('ipk', '>=', 3.50))
+                    ->query(fn(Builder $query): Builder => $query->where('ipk', '>=', 3.50))
                     ->toggle(),
 
                 Filter::make('created_at')
@@ -261,11 +281,11 @@ class MahasiswaResource extends Resource
                         return $query
                             ->when(
                                 $data['created_from'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
                             )
                             ->when(
                                 $data['created_until'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
                             );
                     }),
             ])
@@ -273,17 +293,17 @@ class MahasiswaResource extends Resource
                 Tables\Actions\ViewAction::make()
                     ->color('info'),
                 Tables\Actions\EditAction::make()
-                    ->visible(fn ($record) => Auth::check() && (
+                    ->visible(fn($record) => Auth::check() && (
                         Auth::user()->role === 'admin' ||
                         (Auth::user()->role === 'mahasiswa' && $record->user_id === Auth::id())
                     )),
                 Tables\Actions\DeleteAction::make()
-                    ->visible(fn () => Auth::check() && Auth::user()->role === 'admin'),
+                    ->visible(fn() => Auth::check() && Auth::user()->role === 'admin'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->visible(fn () => Auth::check() && Auth::user()->role === 'admin'),
+                        ->visible(fn() => Auth::check() && Auth::user()->role === 'admin'),
                 ]),
             ])
 
@@ -323,7 +343,7 @@ class MahasiswaResource extends Resource
 
         $user = Auth::user();
 
-        return match($user->role) {
+        return match ($user->role) {
             'admin' => true,
             'mahasiswa' => $record->user_id === $user->id,
             default => false,
@@ -358,7 +378,7 @@ class MahasiswaResource extends Resource
 
         $user = Auth::user();
 
-        return match($user->role) {
+        return match ($user->role) {
             'admin' => true,
             'mahasiswa' => $record->user_id === $user->id,
             default => false,

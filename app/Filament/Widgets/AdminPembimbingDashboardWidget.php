@@ -19,7 +19,7 @@ class AdminPembimbingDashboardWidget extends BaseWidget
         /** @var User|null $user */
         $user = Auth::user();
         $stats = [];
-        $now = Carbon::now('Asia/Jakarta'); // Menggunakan zona waktu WIB
+        $now = Carbon::today('Asia/Jakarta'); // Use date only for comparison
 
         if ($user?->isAdmin()) {
             // Statistik untuk Admin
@@ -35,9 +35,9 @@ class AdminPembimbingDashboardWidget extends BaseWidget
             $activePembimbing = PengajuanMagang::where('status', PengajuanMagang::STATUS_DITERIMA)
                 ->where('tanggal_mulai', '<=', $now)
                 ->where('tanggal_selesai', '>=', $now)
+                ->whereNotNull('pembimbing_id')
                 ->distinct('pembimbing_id')
                 ->count('pembimbing_id');
-
             $totalPengajuan = PengajuanMagang::count();
 
             $stats = [
@@ -76,8 +76,6 @@ class AdminPembimbingDashboardWidget extends BaseWidget
                         'onmouseover' => 'this.style.transform="translateY(-4px)"; this.style.boxShadow="0 12px 35px rgba(16, 185, 129, 0.25)";',
                         'onmouseout' => 'this.style.transform="translateY(0px)"; this.style.boxShadow="0 8px 25px rgba(16, 185, 129, 0.15)";'
                     ]),
-
-
 
                 Stat::make('Pembimbing Aktif', $activePembimbing)
                     ->description(new HtmlString('<span style="color: #0891b2; font-weight: 600;">Dosen pembimbing yang sedang mengawasi</span>'))
@@ -121,7 +119,6 @@ class AdminPembimbingDashboardWidget extends BaseWidget
                     ->where('tanggal_selesai', '>=', $now)
                     ->distinct('mahasiswa_id')
                     ->count('mahasiswa_id');
-
                 $totalBimbingan = PengajuanMagang::where('pembimbing_id', $pembimbingId)->count();
 
                 $stats = [
@@ -161,7 +158,6 @@ class AdminPembimbingDashboardWidget extends BaseWidget
                             'onmouseout' => 'this.style.transform="translateY(0px)"; this.style.boxShadow="0 8px 25px rgba(16, 185, 129, 0.15)";'
                         ]),
 
-
                     Stat::make('Total Bimbingan', $totalBimbingan)
                         ->description(new HtmlString('<span style="color: #db2777; font-weight: 600;">Seluruh mahasiswa yang pernah dibimbing</span>'))
                         ->descriptionIcon('heroicon-m-chart-bar')
@@ -174,7 +170,19 @@ class AdminPembimbingDashboardWidget extends BaseWidget
                             'onmouseout' => 'this.style.transform="translateY(0px)"; this.style.boxShadow="0 8px 25px rgba(236, 72, 153, 0.15)";'
                         ]),
                 ];
+            } else {
+                $stats[] = Stat::make('No Data', '0')
+                    ->description('Tidak ada data pembimbing tersedia')
+                    ->descriptionIcon('heroicon-m-information-circle')
+                    ->color('gray');
             }
+        }
+
+        if (empty($stats)) {
+            $stats[] = Stat::make('No Data', '0')
+                ->description('Tidak ada data yang tersedia saat ini')
+                ->descriptionIcon('heroicon-m-information-circle')
+                ->color('gray');
         }
 
         return $stats;
@@ -190,7 +198,7 @@ class AdminPembimbingDashboardWidget extends BaseWidget
 
     protected function getColumns(): int
     {
-        return 3; // Mengatur jumlah kolom untuk tampilan yang lebih rapi
+        return 3;
     }
 
     protected function getHeading(): string
