@@ -85,7 +85,7 @@ class MahasiswaPrint extends Component
         $pdf = Pdf::loadView('livewire.pdf.mahasiswa-progress', $data);
         return response()->streamDownload(
             fn () => print($pdf->output()),
-            'progress-magang-' . ($mahasiswa->user->name ?? 'mahasiswa') . '.pdf'
+            'Laporan-Magang-' . ($mahasiswa->user->name ?? 'mahasiswa') . '.pdf'
         );
     }
 

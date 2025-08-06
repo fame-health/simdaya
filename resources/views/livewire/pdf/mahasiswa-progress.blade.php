@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,28 +8,41 @@
     <style>
         body {
             font-family: 'Times New Roman', Times, serif;
-            margin: 2.54cm; /* Diubah dari 1cm ke 2.54cm */
+            margin: 2.54cm;
+            /* Diubah dari 1cm ke 2.54cm */
             line-height: 1.5;
             color: #333;
         }
+
         @media print {
             body {
-                margin: 2.54cm !important; /* Pastikan margin tetap 2.54cm saat dicetak */
+                margin: 2.54cm !important;
+                /* Pastikan margin tetap 2.54cm saat dicetak */
             }
-            .no-print { display: none; }
-            .page-break { page-break-before: always; }
+
+            .no-print {
+                display: none;
+            }
+
+            .page-break {
+                page-break-before: always;
+            }
         }
+
         /* ... (kode CSS lainnya tetap sama) ... */
         @page {
             size: A4;
-            margin: 2.54cm; /* Diubah dari 0.5cm ke 2.54cm */
+            margin: 2.54cm;
+            /* Diubah dari 0.5cm ke 2.54cm */
         }
+
         h1 {
             text-align: center;
             color: #1e3a8a;
             font-size: 24pt;
             margin-bottom: 10px;
         }
+
         h2 {
             color: #15803d;
             font-size: 18pt;
@@ -36,32 +50,40 @@
             border-bottom: 2px solid #15803d;
             padding-bottom: 5px;
         }
+
         .header {
             text-align: center;
             margin-bottom: 10px;
         }
+
         .header img {
             max-width: 80px;
             margin-bottom: 10px;
         }
+
         .header p {
             margin: 5px 0;
             font-size: 12pt;
         }
+
         .header hr {
             border: 1px solid #000;
             margin: 15px 0;
         }
+
         .info-section {
             margin-bottom: 20px;
             font-size: 12pt;
         }
+
         .info-section p {
             margin: 5px 0;
         }
+
         .progress-bar-container {
             margin: 20px 0;
         }
+
         .progress-bar {
             background-color: #e5e7eb;
             height: 12px;
@@ -69,99 +91,125 @@
             overflow: hidden;
             border: 1px solid #ccc;
         }
+
         .progress-fill {
             background-color: #2563eb;
             height: 100%;
             transition: width 0.3s ease;
         }
+
         .progress-text {
             font-size: 10pt;
             text-align: right;
             color: #6b7280;
             margin-top: 5px;
         }
-        .progress-container, .catatan-container, .penilaian-container {
+
+        .progress-container,
+        .catatan-container,
+        .penilaian-container {
             margin-top: 20px;
         }
-        .step, .catatan, .penilaian {
+
+        .step,
+        .catatan,
+        .penilaian {
             margin-bottom: 15px;
             padding: 15px;
             border: 1px solid #d1d5db;
             border-radius: 5px;
             background-color: #f9fafb;
         }
-        .step-title, .catatan-title {
+
+        .step-title,
+        .catatan-title {
             font-size: 14pt;
             font-weight: bold;
             color: #15803d;
             margin-bottom: 10px;
         }
-        .step-description, .catatan-description, .penilaian-description {
+
+        .step-description,
+        .catatan-description,
+        .penilaian-description {
             font-size: 12pt;
             color: #374151;
             margin: 5px 0;
         }
-        .step-status, .catatan-status {
+
+        .step-status,
+        .catatan-status {
             font-size: 10pt;
             color: #6b7280;
             margin-top: 10px;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
             font-size: 12pt;
         }
-        th, td {
+
+        th,
+        td {
             border: 1px solid #ccc;
             padding: 10px;
             text-align: left;
         }
+
         th {
             background-color: #f2f2f2;
             font-weight: bold;
         }
+
         .signature {
             margin-top: 40px;
             text-align: right;
             font-size: 12pt;
         }
+
         .signature p {
             margin: 8px 0;
         }
+
         .signature-space {
             height: 80px;
         }
+
         @page {
             size: A4;
             margin: 0.5cm;
         }
     </style>
 </head>
+
 <body>
-<!-- Wrapper Flex -->
-<table width="100%" style="border-bottom: 3px double #000; padding-bottom: 10px;">
-    <tr>
-        <!-- Logo -->
-        <td style="width: 100px; text-align: center; vertical-align: middle;">
-            <img src="<?php echo htmlspecialchars(public_path('images/logo-disbud.png')); ?>" alt="Logo Dinas" style="width: 90px;">
-        </td>
+    <!-- Wrapper Flex -->
+    <table width="100%" style="border-bottom: 3px double #000; padding-bottom: 10px;">
+        <tr>
+            <!-- Logo -->
+            <td style="width: 100px; text-align: center; vertical-align: middle;">
+                <img src="<?php echo htmlspecialchars(public_path('images/logo-disbud.png')); ?>" alt="Logo Dinas" style="width: 90px;">
+            </td>
 
-        <!-- Teks Instansi -->
-        <td style="text-align: center;">
-            <p style="margin: 0; font-size: 14px; font-weight: bold;">PEMERINTAH PROVINSI RIAU</p>
-            <p style="margin: 0; font-size: 16px; font-weight: bold;">DINAS KEBUDAYAAN</p>
-            <p style="margin: 0; font-size: 12px;">Jl. Jend. Sudirman No. 123, Pekanbaru, Riau</p>
-            <p style="margin: 0; font-size: 12px;">Telp: (0761) 123456 | Email: dinas.kebudayaan@riau.go.id</p>
-        </td>
-    </tr>
-</table>
+            <!-- Teks Instansi -->
+            <td style="text-align: center;">
+                <p style="margin: 0; font-size: 14px; font-weight: bold;">PEMERINTAH PROVINSI RIAU</p>
+                <p style="margin: 0; font-size: 16px; font-weight: bold;">DINAS KEBUDAYAAN</p>
+                <p style="margin: 0; font-size: 12px;">Jl. Jend. Sudirman No. 123, Pekanbaru, Riau</p>
+                <p style="margin: 0; font-size: 12px;">Telp: (0761) 123456 | Email: dinas.kebudayaan@riau.go.id</p>
+            </td>
+        </tr>
+    </table>
 
-<!-- Garis Ganda di Bawah -->
-<hr style="border: 2px solid black; margin: 0;">
-<hr style="border: 1px solid black; margin-top: 2px; margin-bottom: 20px;">
+    <!-- Garis Ganda di Bawah -->
+    <hr style="border: 2px solid black; margin: 0;">
+    <hr style="border: 1px solid black; margin-top: 2px; margin-bottom: 20px;">
 
-<table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+<!-- Tabel Mahasiswa -->
+<h3 style="margin-top: 30px; font-weight: bold;">Data Mahasiswa PKL</h3>
+<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
     <tbody>
         <tr>
             <td style="padding: 8px; font-weight: bold; width: 30%;">Nama Mahasiswa</td>
@@ -179,6 +227,7 @@
             <td style="padding: 8px; font-weight: bold;">Jurusan</td>
             <td style="padding: 8px;"><?php echo isset($mahasiswa->jurusan) ? htmlspecialchars($mahasiswa->jurusan) : 'N/A'; ?></td>
         </tr>
+
         <?php if (isset($pengajuanMagang)): ?>
         <tr>
             <td style="padding: 8px; font-weight: bold;">Bidang Magang</td>
@@ -200,37 +249,53 @@
     </tbody>
 </table>
 
-<h2>Laporan Mingguan</h2>
-<div class="progress-container">
-    <?php if (!empty($steps)): ?>
+<!-- Tabel Pembimbing -->
+<h3 style="margin-top: 30px; font-weight: bold;">Data Pembimbing Lapanggan</h3>
+<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+    <tbody>
+        <tr>
+            <td style="padding: 8px; font-weight: bold; width: 30%;">Nama Pembimbing</td>
+            <td style="padding: 8px;"><?php echo isset($pengajuanMagang->pembimbing->user->name) ? htmlspecialchars($pengajuanMagang->pembimbing->user->name) : 'N/A'; ?></td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; font-weight: bold;">NIP Pembimbing</td>
+            <td style="padding: 8px;"><?php echo isset($pengajuanMagang->pembimbing->nip) ? htmlspecialchars($pengajuanMagang->pembimbing->nip) : 'N/A'; ?></td>
+        </tr>
+    </tbody>
+</table>
+
+
+    <h2>Laporan Mingguan</h2>
+    <div class="progress-container">
+        <?php if (!empty($steps)): ?>
         <?php foreach ($steps as $index => $step): ?>
-            <div class="step">
-                <div class="step-title"><?php echo ($index + 1) . '. ' . htmlspecialchars($step['title']); ?></div>
-                <div class="step-description"><strong>Kegiatan:</strong> <?php echo isset($step['description']) ? htmlspecialchars($step['description']) : 'N/A'; ?></div>
-                <div class="step-description"><strong>Pencapaian:</strong> <?php echo isset($step['pencapaian']) ? htmlspecialchars($step['pencapaian']) : 'N/A'; ?></div>
-                <div class="step-description"><strong>Kendala:</strong> <?php echo isset($step['kendala']) ? htmlspecialchars($step['kendala']) : 'N/A'; ?></div>
-                <div class="step-description"><strong>Rencana Minggu Depan:</strong> <?php echo isset($step['rencana_minggu_depan']) ? htmlspecialchars($step['rencana_minggu_depan']) : 'N/A'; ?></div>
-                <div class="step-status">
-                    Status: <?php echo isset($step['completed']) && $step['completed'] ? 'Selesai' : (isset($step['active']) && $step['active'] ? 'Sedang Berjalan' : 'Menunggu'); ?>
-                    <?php if (isset($step['completed']) && $step['completed'] && isset($step['completed_at'])): ?>
-                        <span>(<?php echo htmlspecialchars($step['completed_at']); ?>)</span>
-                    <?php endif; ?>
-                </div>
-                <?php if (isset($step['catatan_pembimbing']) && !empty($step['catatan_pembimbing'])): ?>
-                    <div class="step-description"><strong>Catatan Pembimbing:</strong> <?php echo htmlspecialchars($step['catatan_pembimbing']); ?></div>
+        <div class="step">
+            <div class="step-title"><?php echo $index + 1 . '. ' . htmlspecialchars($step['title']); ?></div>
+            <div class="step-description"><strong>Kegiatan:</strong> <?php echo isset($step['description']) ? htmlspecialchars($step['description']) : 'N/A'; ?></div>
+            <div class="step-description"><strong>Pencapaian:</strong> <?php echo isset($step['pencapaian']) ? htmlspecialchars($step['pencapaian']) : 'N/A'; ?></div>
+            <div class="step-description"><strong>Kendala:</strong> <?php echo isset($step['kendala']) ? htmlspecialchars($step['kendala']) : 'N/A'; ?></div>
+            <div class="step-description"><strong>Rencana Minggu Depan:</strong> <?php echo isset($step['rencana_minggu_depan']) ? htmlspecialchars($step['rencana_minggu_depan']) : 'N/A'; ?></div>
+            <div class="step-status">
+                Status: <?php echo isset($step['completed']) && $step['completed'] ? 'Selesai' : (isset($step['active']) && $step['active'] ? 'Sedang Berjalan' : 'Menunggu'); ?>
+                <?php if (isset($step['completed']) && $step['completed'] && isset($step['completed_at'])): ?>
+                <span>(<?php echo htmlspecialchars($step['completed_at']); ?>)</span>
                 <?php endif; ?>
             </div>
+            <?php if (isset($step['catatan_pembimbing']) && !empty($step['catatan_pembimbing'])): ?>
+            <div class="step-description"><strong>Catatan Pembimbing:</strong> <?php echo htmlspecialchars($step['catatan_pembimbing']); ?></div>
+            <?php endif; ?>
+        </div>
         <?php endforeach; ?>
-    <?php else: ?>
+        <?php else: ?>
         <p>Tidak ada laporan mingguan tersedia.</p>
-    <?php endif; ?>
-</div>
+        <?php endif; ?>
+    </div>
 
-<div class="page-break"></div>
+    <div class="page-break"></div>
 
-<h2>Penilaian</h2>
-<div class="penilaian-container">
-    <?php if (!empty($penilaian)): ?>
+    <h2>Penilaian</h2>
+    <div class="penilaian-container">
+        <?php if (!empty($penilaian)): ?>
         <table>
             <thead>
                 <tr>
@@ -245,30 +310,57 @@
             </thead>
             <tbody>
                 <?php foreach ($penilaian as $item): ?>
-                    <tr>
-                        <td><?php echo isset($item->aspek_penilaian) ? htmlspecialchars($item->aspek_penilaian) : 'N/A'; ?></td>
-                        <td><?php echo isset($item->nilai) ? htmlspecialchars($item->nilai) : 'N/A'; ?></td>
-                        <td><?php echo isset($item->bobot) ? htmlspecialchars($item->bobot) : 'N/A'; ?></td>
-                        <td><?php echo isset($item->nilai_akhir) ? htmlspecialchars($item->nilai_akhir) : 'N/A'; ?></td>
-                        <td><?php echo isset($item->grade) ? htmlspecialchars($item->grade) : 'N/A'; ?></td>
-                        <td><?php echo isset($item->keterangan) ? htmlspecialchars($item->keterangan) : 'N/A'; ?></td>
-                        <td><?php echo isset($item->tanggal_penilaian) ? htmlspecialchars($item->tanggal_penilaian->format('d M Y')) : 'N/A'; ?></td>
-                    </tr>
+                <tr>
+                    <td><?php echo isset($item->aspek_penilaian) ? htmlspecialchars($item->aspek_penilaian) : 'N/A'; ?></td>
+                    <td><?php echo isset($item->nilai) ? htmlspecialchars($item->nilai) : 'N/A'; ?></td>
+                    <td><?php echo isset($item->bobot) ? htmlspecialchars($item->bobot) : 'N/A'; ?></td>
+                    <td><?php echo isset($item->nilai_akhir) ? htmlspecialchars($item->nilai_akhir) : 'N/A'; ?></td>
+                    <td><?php echo isset($item->grade) ? htmlspecialchars($item->grade) : 'N/A'; ?></td>
+                    <td><?php echo isset($item->keterangan) ? htmlspecialchars($item->keterangan) : 'N/A'; ?></td>
+                    <td><?php echo isset($item->tanggal_penilaian) ? htmlspecialchars($item->tanggal_penilaian->format('d M Y')) : 'N/A'; ?></td>
+                </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
-    <?php else: ?>
+        <?php else: ?>
         <p>Tidak ada data penilaian tersedia.</p>
-    <?php endif; ?>
-</div>
+        <?php endif; ?>
+    </div>
+<!-- Struktur utama -->
+<table style="width: 100%; font-size: 12pt; border-collapse: collapse; margin-top: 60px;">
+    <tr>
+        <td style="width: 50%; text-align: left; vertical-align: top;">
+            <p style="margin: 0;">Pembimbing Lapangan,</p>
+        </td>
+        <td style="width: 50%; text-align: right; vertical-align: top;">
+            <p style="margin: 0;">Pekanbaru, <?php echo date('d M Y'); ?></p>
+            <p style="margin: 0;">Kepala Dinas Kebudayaan Provinsi Riau</p>
+        </td>
+    </tr>
 
-<div class="signature">
-    <p>Pekanbaru, <?php echo date('d M Y'); ?></p>
-    <p>Kepala Dinas Kebudayaan Provinsi Riau</p>
-    <div class="signature-space"></div>
-    <p>(__________________________)</p>
-    <p>Nama: Nama Kepala Dinas</p>
-    <p>NIP: NIP Kepala Dinas</p>
-</div>
+    <!-- Baris tanda tangan -->
+    <tr>
+        <td style="padding-top: 80px; text-align: left; vertical-align: top;">
+            <p style="margin: 0;">
+                (<?php echo isset($pengajuanMagang->pembimbing->user->name) ? htmlspecialchars($pengajuanMagang->pembimbing->user->name) : '________________'; ?>)
+            </p>
+            <p style="margin: 0;">
+                NIP: <?php echo isset($pengajuanMagang->pembimbing->nip) ? htmlspecialchars($pengajuanMagang->pembimbing->nip) : '________________'; ?>
+            </p>
+        </td>
+        <td style="padding-top: 80px; text-align: right; vertical-align: top;">
+            <p style="margin: 0;">(__________________________)</p>
+            <p style="margin: 0;">Nama: Nama Kepala Dinas</p>
+            <p style="margin: 0;">NIP: NIP Kepala Dinas</p>
+        </td>
+    </tr>
+</table>
+
+
+
+
+
+
 </body>
+
 </html>

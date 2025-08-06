@@ -5,6 +5,6 @@
         wire:click="printPdf"
         class="mt-2"
     >
-        Cetak Progres Magang
+        Cetak Laporan Magang
     </x-filament::button>
 </div>

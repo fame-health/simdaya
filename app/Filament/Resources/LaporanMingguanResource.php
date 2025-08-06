@@ -192,8 +192,8 @@ public static function shouldRegisterNavigation(): bool
                                 ->label('Minggu Ke')
                                 ->numeric()
                                 ->required()
-                                ->minValue(1)
-                                ->maxValue($pengajuanMagang ? $pengajuanMagang->durasi_magang : 52),
+                                ->minValue(1),
+
 
                             Grid::make(2)
                                 ->schema([
